@@ -25,7 +25,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book addBook(BookDto dto) {
-        //TODO: Validate ISBN logic can be added here or in controller
+        //TODO: Validate ISBN logic can be added here
         Book book = new Book();
         book.setIsbn(dto.getIsbn());
         book.setTitle(dto.getTitle());
