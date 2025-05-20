@@ -1,119 +1,180 @@
-//package com.example.library.controller;
-//
-//import com.example.library.dto.BookDto;
-//import com.example.library.model.Book;
-//import com.example.library.service.BookService;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-//import org.springframework.http.MediaType;
-//import org.springframework.test.context.bean.override.mockito.MockitoBean;
-//import org.springframework.test.context.junit.jupiter.SpringExtension;
-//import org.springframework.test.web.servlet.MockMvc;
-//
-//import java.util.List;
-//
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.when;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-//
-//
-//@ExtendWith(SpringExtension.class)
-//@WebMvcTest(BookController.class)
-//public class BookControllerTest {
-//
-//    @Autowired
-//    private MockMvc mockMvc;
-//
-//    @MockitoBean
-//    private BookService bookService;
-//
-//    @Autowired
-//    private ObjectMapper objectMapper;
-//
-//    @Test
-//    void testAddBook() throws Exception {
-//        BookDto dto = new BookDto("123-456", "Test Book", "Author Name");
-//
-//        Book savedBook = new Book();
-//        savedBook.setId(1L);
-//        savedBook.setIsbn(dto.getIsbn());
-//        savedBook.setTitle(dto.getTitle());
-//        savedBook.setAuthor(dto.getAuthor());
-//
-//        when(bookService.addBook(any(BookDto.class))).thenReturn(savedBook);
-//
-//        mockMvc.perform(post("/api/books/add")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(dto)))
-//                .andExpect(status().isCreated())
-//                .andExpect(jsonPath("$.id").value(savedBook.getId()))
-//                .andExpect(jsonPath("$.isbn").value(savedBook.getIsbn()))
-//                .andExpect(jsonPath("$.title").value(savedBook.getTitle()));
-//    }
-//
-//    @Test
-//    void testGetAllBooks() throws Exception {
-//        Book book = new Book();
-//        book.setId(1L);
-//        book.setTitle("Spring Boot in Action");
-//        book.setAuthor("Craig Walls");
-//
-//        when(bookService.getAllBooks()).thenReturn(List.of(book));
-//
-//        mockMvc.perform(get("/api/books"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.size()").value(1))
-//                .andExpect(jsonPath("$[0].title").value("Spring Boot in Action"));
-//    }
-//
-//    @Test
-//    void testBorrowBook_Success() throws Exception {
-//        Book book = new Book();
-//        book.setId(1L);
-//        book.setBorrowed(true);
-//
-//        when(bookService.borrowBook(1L, 1L)).thenReturn(book);
-//
-//        mockMvc.perform(post("/api/books/1/borrow/1"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.borrowed").value(true));
-//    }
-//
-//    @Test
-//    void testBorrowBook_Failure() throws Exception {
-//        when(bookService.borrowBook(1L, 1L)).thenThrow(new RuntimeException("Book is already borrowed"));
-//
-//        mockMvc.perform(post("/api/books/1/borrow/1"))
-//                .andExpect(status().isBadRequest())
-//                .andExpect(jsonPath("$.error").value("Book is already borrowed"));
-//    }
-//
-//    @Test
-//    void testReturnBook_Success() throws Exception {
-//        Book book = new Book();
-//        book.setId(1L);
-//        book.setBorrowed(false);
-//
-//        when(bookService.returnBook(1L)).thenReturn(book);
-//
-//        mockMvc.perform(post("/api/books/1/return"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.borrowed").value(false));
-//    }
-//
-//    @Test
-//    void testReturnBook_Failure() throws Exception {
-//        when(bookService.returnBook(1L)).thenThrow(new RuntimeException("Book is not borrowed"));
-//
-//        mockMvc.perform(post("/api/books/1/return"))
-//                .andExpect(status().isBadRequest())
-//                .andExpect(jsonPath("$.error").value("Book is not borrowed"));
-//    }
-//}
-//
+package com.example.library.controller;
+
+import com.example.library.dto.BookCopyResponseDto;
+import com.example.library.dto.BookDto;
+import com.example.library.model.Book;
+import com.example.library.model.BookCopy;
+import com.example.library.service.BookCopyService;
+import com.example.library.service.BookService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(BookController.class)
+public class BookControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private BookService bookService;
+
+    @MockitoBean
+    private BookCopyService bookCopyService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Test
+    void testAddBook() throws Exception {
+        BookDto bookDto = new BookDto("1234567890", "Title", "Author");
+        Book book = new Book();
+        book.setIsbn(bookDto.getIsbn());
+        book.setTitle(bookDto.getTitle());
+        book.setAuthor(bookDto.getAuthor());
+
+        when(bookService.addOrUpdateBook(any(BookDto.class))).thenReturn(book);
+
+        mockMvc.perform(post("/api/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isbn").value(book.getIsbn()))
+                .andExpect(jsonPath("$.title").value(book.getTitle()))
+                .andExpect(jsonPath("$.author").value(book.getAuthor()));
+
+        verify(bookService).addOrUpdateBook(any(BookDto.class));
+    }
+
+    @Test
+    void testGetAllBooks() throws Exception {
+        Book book = new Book();
+        book.setIsbn("1234567890");
+        book.setTitle("Title");
+        book.setAuthor("Author");
+
+        when(bookService.getAllBooks()).thenReturn(Collections.singletonList(book));
+
+        mockMvc.perform(get("/api/books"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].isbn").value(book.getIsbn()));
+
+        verify(bookService).getAllBooks();
+    }
+
+    @Test
+    void testGetBookByIsbn() throws Exception {
+        String isbn = "1234567890";
+        Book book = new Book();
+        book.setIsbn(isbn);
+        book.setTitle("Title");
+        book.setAuthor("Author");
+
+        when(bookService.getBookByIsbn(isbn)).thenReturn(book);
+
+        mockMvc.perform(get("/api/books/{isbn}", isbn))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isbn").value(isbn));
+
+        verify(bookService).getBookByIsbn(isbn);
+    }
+
+    @Test
+    void testAddBookCopy() throws Exception {
+        String isbn = "1234567890";
+        BookCopyResponseDto copyDto = new BookCopyResponseDto();
+
+        when(bookCopyService.addBookCopy(isbn)).thenReturn(copyDto);
+
+        mockMvc.perform(post("/api/books/{isbn}/copies", isbn))
+                .andExpect(status().isOk());
+
+        verify(bookCopyService).addBookCopy(isbn);
+    }
+
+    @Test
+    void testBorrowBookCopySuccess() throws Exception {
+        Long copyId = 1L;
+        Long borrowerId = 2L;
+        BookCopy bookCopy = new BookCopy();
+        bookCopy.setId(copyId);
+
+        when(bookCopyService.borrowBookCopy(copyId, borrowerId)).thenReturn(bookCopy);
+
+        mockMvc.perform(post("/api/books/copies/{copyId}/borrow/{borrowerId}", copyId, borrowerId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(copyId));
+
+        verify(bookCopyService).borrowBookCopy(copyId, borrowerId);
+    }
+
+    @Test
+    void testBorrowBookCopyFailure() throws Exception {
+        Long copyId = 1L;
+        Long borrowerId = 2L;
+
+        when(bookCopyService.borrowBookCopy(copyId, borrowerId))
+                .thenThrow(new RuntimeException("Copy already borrowed"));
+
+        mockMvc.perform(post("/api/books/copies/{copyId}/borrow/{borrowerId}", copyId, borrowerId))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Copy already borrowed"));
+
+        verify(bookCopyService).borrowBookCopy(copyId, borrowerId);
+    }
+
+    @Test
+    void testReturnBookCopySuccess() throws Exception {
+        Long copyId = 1L;
+        BookCopy bookCopy = new BookCopy();
+        bookCopy.setId(copyId);
+
+        when(bookCopyService.returnBookCopy(copyId)).thenReturn(bookCopy);
+
+        mockMvc.perform(post("/api/books/copies/{copyId}/return", copyId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(copyId));
+
+        verify(bookCopyService).returnBookCopy(copyId);
+    }
+
+    @Test
+    void testReturnBookCopyFailure() throws Exception {
+        Long copyId = 1L;
+
+        when(bookCopyService.returnBookCopy(copyId))
+                .thenThrow(new RuntimeException("Copy not borrowed"));
+
+        mockMvc.perform(post("/api/books/copies/{copyId}/return", copyId))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Copy not borrowed"));
+
+        verify(bookCopyService).returnBookCopy(copyId);
+    }
+
+    @Test
+    void testGetAvailableCopies() throws Exception {
+        String isbn = "1234567890";
+        BookCopyResponseDto copyDto = new BookCopyResponseDto();
+
+        when(bookCopyService.getAvailableCopies(isbn)).thenReturn(Collections.singletonList(copyDto));
+
+        mockMvc.perform(get("/api/books/{isbn}/copies/available", isbn))
+                .andExpect(status().isOk());
+
+        verify(bookCopyService).getAvailableCopies(isbn);
+    }
+}
