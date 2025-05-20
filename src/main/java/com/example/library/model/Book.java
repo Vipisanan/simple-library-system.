@@ -8,11 +8,8 @@ import lombok.Data;
 @Table(name = "books")
 @Data
 public class Book {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @NotBlank
+    @Id
     private String isbn;
 
     @NotBlank
@@ -20,11 +17,6 @@ public class Book {
 
     @NotBlank
     private String author;
-
-    private boolean isBorrowed = false;
-
-    @ManyToOne
-    private Borrower borrower; // optional, used if book is borrowed
 
 
 }

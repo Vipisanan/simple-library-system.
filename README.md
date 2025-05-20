@@ -1,179 +1,426 @@
-
-# Library System REST API Documentation
-
-Base URL: `/api`
+**API Documentation** for your Library System covering both `Book` and `BookCopy` processes based on your requirements.
 
 ---
 
-##Book APIs
+## **Library System API Documentation**
 
-### 1. Add a New Book
+### Base URL:
 
-**POST** `/api/books/add`
+```
+http://localhost:8080/api
+```
 
-Registers a new physical copy of a book.
+---
 
-#### Request Body:
+## Book Management
+
+### 1. **Add a New Book**
+
+* **POST** `/books/add`
+* **Request Body:**
 
 ```json
 {
-  "isbn": "978-1234567890",
-  "title": "Clean Code",
-  "author": "Robert C. Martin"
+  "isbn": "9781234567890",
+  "title": "Effective Java",
+  "author": "Joshua Bloch"
 }
 ```
 
-#### Response:
+* **Response:**
 
 ```json
 {
   "id": 1,
-  "isbn": "978-1234567890",
-  "title": "Clean Code",
-  "author": "Robert C. Martin",
+  "isbn": "9781234567890",
+  "title": "Effective Java",
+  "author": "Joshua Bloch"
+}
+```
+
+---
+
+### 2. **Get All Books**
+
+* **GET** `/books`
+* **Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "isbn": "9781234567890",
+    "title": "Effective Java",
+    "author": "Joshua Bloch"
+  },
+  ...
+]
+```
+
+---
+
+## BookCopy Management
+
+### 3. **Add a Book Copy by ISBN**
+
+* **POST** `/book-copies/add/{isbn}`
+* **Path Variable:** ISBN of the existing book
+* **Response:**
+
+```json
+{
+  "id": 101,
+  "book": {
+    "isbn": "9781234567890",
+    "title": "Effective Java",
+    "author": "Joshua Bloch"
+  },
+  "isBorrowed": false
+}
+```
+
+---
+
+### 4. **Borrow a Book Copy**
+
+* **POST** `/book-copies/{copyId}/borrow/{borrowerId}`
+* **Path Variables:**
+
+  * `copyId`: ID of the book copy
+  * `borrowerId`: ID of the borrower
+* **Response:**
+
+```json
+{
+  "id": 101,
+  "isBorrowed": true,
+  "borrower": {
+    "id": 5,
+    "name": "John Doe"
+  }
+}
+```
+
+---
+
+### 5. **Return a Book Copy**
+
+* **POST** `/book-copies/{copyId}/return`
+* **Path Variable:** `copyId`
+* **Response:**
+
+```json
+{
+  "id": 101,
+  "isBorrowed": false,
   "borrower": null
 }
 ```
 
 ---
 
-### 2. Get All Books
+### 6. **Get All Copies by ISBN**
 
-**GET** `/api/books`
-
-Returns a list of all books (all physical copies).
-
-#### Response:
+* **GET** `/book-copies/all/{isbn}`
+* **Response:**
 
 ```json
 [
   {
-    "id": 1,
-    "isbn": "978-1234567890",
-    "title": "Clean Code",
-    "author": "Robert C. Martin",
-    "borrower": null
+    "id": 101,
+    "isBorrowed": false
   },
   {
-    "id": 2,
-    "isbn": "978-1234567890",
-    "title": "Clean Code",
-    "author": "Robert C. Martin",
-    "borrower": {
-      "id": 1,
-      "name": "Alice",
-      "email": "alice@example.com"
-    }
+    "id": 102,
+    "isBorrowed": true
   }
 ]
 ```
 
 ---
 
-### 3. Borrow a Book
+### 7. **Get Available Copies by ISBN**
 
-**POST** `/api/books/{bookId}/borrow/{borrowerId}`
-
-Borrows a book by book ID for a specific borrower.
-
-#### Response:
+* **GET** `/book-copies/available/{isbn}`
+* **Response:**
 
 ```json
-{
-  "message": "Book borrowed successfully"
-}
+[
+  {
+    "id": 101,
+    "isBorrowed": false
+  }
+]
 ```
-
-#### Errors:
-
-* `404 Not Found`: Book or borrower does not exist
-* `400 Bad Request`: Book is already borrowed
 
 ---
 
-### 4. Return a Book
+### 8. **Get BookCopy by ID**
 
-**POST** `/api/books/{bookId}/return`
-
-Returns a borrowed book to the library.
-
-#### Response:
+* **GET** `/book-copies/{copyId}`
+* **Response:**
 
 ```json
 {
-  "message": "Book returned successfully"
+  "id": 101,
+  "isBorrowed": false,
+  "book": {
+    "isbn": "9781234567890",
+    "title": "Effective Java",
+    "author": "Joshua Bloch"
+  },
+  "borrower": null
 }
 ```
 
-#### Errors:
-
-* `404 Not Found`: Book not found
-* `400 Bad Request`: Book is not currently borrowed
-
 ---
 
-## Borrower APIs
+## Borrower Management
 
-### 1. Register a New Borrower
+### 9. **Register Borrower**
 
-**POST** `/api/borrowers/register`
-
-Registers a new borrower.
-
-#### Request Body:
+* **POST** `/borrowers/register`
+* **Request Body:**
 
 ```json
 {
-  "name": "Alice",
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+* **Response:**
+
+```json
+{
+  "id": 5,
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+---
+
+### 10. **Get Borrower by ID**
+
+* **GET** `/borrowers/{id}`
+* **Response:**
+
+```json
+{
+  "id": 5,
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+---
+
+## Error Format (Common)
+
+If something goes wrong (e.g., borrow a book that's already borrowed):
+
+```json
+{
+  "error": "Book copy is already borrowed"
+}
+```
+
+---
+
+## Notes:
+
+* ISBN uniquely identifies a **book**, not a physical copy.
+* A `BookCopy` references a `Book` using the ISBN.
+* Borrow/Return operations are handled on `BookCopy` level.
+* Only books added using `/books/add` can be used to create copies.
+
+---
+
+---
+
+---
+
+## Swagger API Documentation
+
+### 🔗 Swagger UI
+
+You can explore and test all endpoints via Swagger:
+
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
+---
+
+### ✅ Available Endpoints
+
+#### 📚 **Books**
+
+* `POST /api/books/add` – Add a new book (requires unique ISBN)
+* `GET /api/books` – Get all books in the system
+
+#### 📗 **Book Copies**
+
+* `POST /api/book-copies/add/{isbn}` – Add a new book copy for the given ISBN
+* `GET /api/book-copies/all/{isbn}` – Get all copies of a book by ISBN
+* `GET /api/book-copies/available/{isbn}` – Get only available (not borrowed) copies
+* `GET /api/book-copies/{copyId}` – Get a single copy by ID
+* `POST /api/book-copies/{copyId}/borrow/{borrowerId}` – Borrow a book copy
+* `POST /api/book-copies/{copyId}/return` – Return a borrowed book copy
+
+#### 👤 **Borrowers**
+
+* `POST /api/borrowers/register` – Register a new borrower
+* `GET /api/borrowers/{id}` – Get borrower details by ID
+
+---
+
+### 🧪 Testing the API
+
+You can test all endpoints using:
+
+* **Postman**
+* **Curl**
+* **Swagger UI**
+
+Swagger also includes validation rules, example request/response payloads, and error codes.
+
+---
+
+Great! Below is a **clear API workflow document** that outlines the recommended **step-by-step usage of your Library Management System**, including when and how to use each API. This document is ideal for adding to your `README.md` or internal API documentation.
+
+---
+
+# -> Library Management API – Workflow Guide
+
+This guide outlines the recommended steps to manage books, book copies, and borrowing functionality using the Library API.
+
+---
+
+### **Workflow Overview**
+
+```text
+1. Add a new book (with ISBN, title, and author)
+2. Create one or more physical copies for that book
+3. Register a borrower
+4. Borrow a book copy by borrower
+5. Return the borrowed book copy
+```
+
+---
+
+### **Step-by-Step API Usage**
+
+---
+
+### 1. Add a New Book
+
+**Endpoint:** `POST /api/books/add`
+**Description:** Adds a new book identified by ISBN. ISBN must be unique.
+**Request Body:**
+
+```json
+{
+  "isbn": "978-1-56619-909-4",
+  "title": "The Art of Programming",
+  "author": "Donald Knuth"
+}
+```
+
+---
+
+### 2. Add Book Copies (Physical Copies)
+
+**Endpoint:** `POST /api/book-copies/add/{isbn}`
+**Description:** Adds a new physical copy of an existing book using ISBN.
+**Path Variable:**
+
+* `isbn`: The ISBN of the book.
+
+**Example:**
+`POST /api/book-copies/add/978-1-56619-909-4`
+
+---
+
+### 3. Register a Borrower
+
+**Endpoint:** `POST /api/borrowers/register`
+**Description:** Creates a borrower account.
+**Request Body:**
+
+```json
+{
+  "name": "Alice Smith",
   "email": "alice@example.com"
 }
 ```
 
-#### Response:
+---
 
-```json
-{
-  "id": 1,
-  "name": "Alice",
-  "email": "alice@example.com"
-}
-```
+### 4. Borrow a Book Copy
+
+**Endpoint:** `POST /api/book-copies/{copyId}/borrow/{borrowerId}`
+**Description:** Allows a registered borrower to borrow an available book copy.
+**Path Variables:**
+
+* `copyId`: ID of the book copy.
+* `borrowerId`: ID of the borrower.
+
+**Example:**
+`POST /api/book-copies/5/borrow/3`
 
 ---
 
-### 2. Get Borrower by ID
+###  5. Return a Book Copy
 
-**GET** `/api/borrowers/{id}`
+**Endpoint:** `POST /api/book-copies/{copyId}/return`
+**Description:** Marks the book copy as returned.
+**Path Variable:**
 
-Fetches details of a borrower.
+* `copyId`: ID of the book copy.
 
-#### Response:
-
-```json
-{
-  "id": 1,
-  "name": "Alice",
-  "email": "alice@example.com"
-}
-```
+**Example:**
+`POST /api/book-copies/5/return`
 
 ---
 
-## Notes & Assumptions
+### Optional Queries
 
-* 📌 A book (by `bookId`) can be borrowed by only **one borrower at a time**
-* 📌 Multiple physical copies of the same ISBN are stored as separate `Book` entries with unique IDs
-* 📌 Validation ensures:
+#### Get All Books
 
-    * `@NotBlank` name
-    * `@Email` format for email
-* 📌 Error responses follow consistent structure and use `ResponseEntity` for status codes
+`GET /api/books`
+
+#### Get All Book Copies by ISBN
+
+`GET /api/book-copies/all/{isbn}`
+
+#### Get Available Book Copies by ISBN
+
+`GET /api/book-copies/available/{isbn}`
+
+#### Get Borrower by ID
+
+`GET /api/borrowers/{id}`
 
 ---
 
-## Swagger / OpenAPI Integration
+### Rules & Validations
 
-```
-http://localhost:8080/swagger-ui.html
-```
+* **ISBN is the unique identity for a book**. All book copies with the same ISBN must have the same title and author.
+* **Multiple book copies** can be added under the same ISBN.
+* **A book copy can only be borrowed if it's not already borrowed**.
+* **Borrower must be registered before borrowing**.
+* If a book copy is already borrowed, a new borrow attempt will return an error.
+
+---
+
+### 📘 Example Flow
+
+1. **Create a Book** with ISBN `978-1-56619-909-4`
+2. **Add 3 Book Copies** using the same ISBN
+3. **Register Borrower Alice**
+4. **Borrow Copy #1** using Alice's borrower ID
+5. **Return Copy #1**
+
 ---

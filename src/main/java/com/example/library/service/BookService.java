@@ -6,8 +6,8 @@ import com.example.library.model.Book;
 import java.util.List;
 
 public interface BookService {
-    Book addBook(BookDto dto);
+    Book addOrUpdateBook(BookDto bookDto); // Ensures title and author consistency for ISBN
     List<Book> getAllBooks();
-    Book borrowBook(Long bookId, Long borrowerId);
-    Book returnBook(Long bookId);
+
+    Book getBookByIsbn(String isbn);
 }

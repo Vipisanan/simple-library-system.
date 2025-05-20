@@ -2,15 +2,15 @@ package com.example.library.controller;
 
 import com.example.library.dto.BookDto;
 import com.example.library.model.Book;
+import com.example.library.model.BookCopy;
+import com.example.library.service.BookCopyService;
 import com.example.library.service.BookService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/books")
@@ -19,44 +19,61 @@ public class BookController {
     @Autowired
     private BookService bookService;
 
-    // Add a new book
-    @PostMapping("/add")
+    @Autowired
+    private BookCopyService bookCopyService;
+
+    // Add or register a unique book by ISBN (creates entry if not already exists)
+    @PostMapping
     public ResponseEntity<Book> addBook(@Valid @RequestBody BookDto bookDto) {
-        Book createdBook = bookService.addBook(bookDto);
-        return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
+        Book book = bookService.addOrUpdateBook(bookDto);
+        return ResponseEntity.ok(book);
     }
 
-    // Get list of all books
+    // Get all books
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books = bookService.getAllBooks();
-        return ResponseEntity.ok(books);
+        return ResponseEntity.ok(bookService.getAllBooks());
     }
 
-    // Borrow a book by bookId and borrowerId
-    @PostMapping("/{bookId}/borrow/{borrowerId}")
-    public ResponseEntity<?> borrowBook(
-            @PathVariable Long bookId,
-            @PathVariable Long borrowerId
-    ) {
+    // Get book by ISBN
+    @GetMapping("/{isbn}")
+    public ResponseEntity<Book> getBookByIsbn(@PathVariable String isbn) {
+        return ResponseEntity.ok(bookService.getBookByIsbn(isbn));
+    }
+
+    // Add a new copy of a book (physical copy)
+    @PostMapping("/{isbn}/copies")
+    public ResponseEntity<BookCopy> addBookCopy(@PathVariable String isbn) {
+        BookCopy copy = bookCopyService.addBookCopy(isbn);
+        return ResponseEntity.ok(copy);
+    }
+
+    // Borrow a copy of a book by copy ID and borrower ID
+    @PostMapping("/copies/{copyId}/borrow/{borrowerId}")
+    public ResponseEntity<?> borrowBookCopy(@PathVariable Long copyId, @PathVariable Long borrowerId) {
         try {
-            Book borrowedBook = bookService.borrowBook(bookId, borrowerId);
-            return ResponseEntity.ok(borrowedBook);
+            BookCopy copy = bookCopyService.borrowBookCopy(copyId, borrowerId);
+            return ResponseEntity.ok(copy);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // Return a borrowed book by bookId
-    @PostMapping("/{bookId}/return")
-    public ResponseEntity<?> returnBook(@PathVariable Long bookId) {
+    // Return a borrowed book copy
+    @PostMapping("/copies/{copyId}/return")
+    public ResponseEntity<?> returnBookCopy(@PathVariable Long copyId) {
         try {
-            Book returnedBook = bookService.returnBook(bookId);
-            return ResponseEntity.ok(returnedBook);
+            BookCopy copy = bookCopyService.returnBookCopy(copyId);
+            return ResponseEntity.ok(copy);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // Get all available (not borrowed) copies for a book by ISBN
+    @GetMapping("/{isbn}/copies/available")
+    public ResponseEntity<List<BookCopy>> getAvailableCopies(@PathVariable String isbn) {
+        List<BookCopy> copies = bookCopyService.getAvailableCopies(isbn);
+        return ResponseEntity.ok(copies);
     }
 }
