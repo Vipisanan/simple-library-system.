@@ -45,6 +45,13 @@ public class BookCopyController {
         }
     }
 
+    // Get all copies
+    @GetMapping()
+    public ResponseEntity<List<BookCopyResponseDto>> getAllCopies() {
+        List<BookCopyResponseDto> copies = bookCopyService.getAllCopies();
+        return ResponseEntity.ok(copies);
+    }
+
     // Get all available copies for a given ISBN
     @GetMapping("/available/{isbn}")
     public ResponseEntity<List<BookCopyResponseDto>> getAvailableCopies(@PathVariable String isbn) {
@@ -54,7 +61,7 @@ public class BookCopyController {
 
     // Get all copies of a book by ISBN (borrowed or not)
     @GetMapping("/all/{isbn}")
-    public ResponseEntity<List<BookCopyResponseDto>> getAllCopies(@PathVariable String isbn) {
+    public ResponseEntity<List<BookCopyResponseDto>> getAllCopiesByIsbn(@PathVariable String isbn) {
         List<BookCopyResponseDto> copies = bookCopyService.getAvailableCopies(isbn);
         return ResponseEntity.ok(copies);
     }

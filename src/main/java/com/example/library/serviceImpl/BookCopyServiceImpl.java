@@ -75,4 +75,10 @@ public class BookCopyServiceImpl implements BookCopyService {
         List<BookCopy> bookCopy = bookCopyRepository.findByBookIsbnAndIsBorrowedFalse(isbn);
         return bookCopyMapper.convertToResponseDtoList(bookCopy);
     }
+
+    @Override
+    public List<BookCopyResponseDto> getAllCopies() {
+        List<BookCopy> bookCopy = bookCopyRepository.findAll();
+        return bookCopyMapper.convertToResponseDtoList(bookCopy);
+    }
 }

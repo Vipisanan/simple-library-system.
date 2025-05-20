@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class BookCopyResponseDto {
+    private Long id;
     private String isbn;
     private String title;
     private String author;

@@ -14,4 +14,6 @@ public interface BookCopyService {
 
     List<BookCopyResponseDto> getAvailableCopies(String isbn);
 
+    List<BookCopyResponseDto> getAllCopies();
+
 }

@@ -21,6 +21,7 @@ public class BookCopyMapper {
                 .build() : null;
 
         return BookCopyResponseDto.builder()
+                .id(bookCopy.getId())
                 .isbn(bookCopy.getBook().getIsbn())
                 .title(bookCopy.getBook().getTitle())
                 .author(bookCopy.getBook().getAuthor())
