@@ -1,5 +1,6 @@
 package com.example.library.controller;
 
+import com.example.library.dto.BookCopyResponseDto;
 import com.example.library.model.BookCopy;
 import com.example.library.service.BookCopyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,9 @@ public class BookCopyController {
 
     // Add a new copy of a book using ISBN
     @PostMapping("/add/{isbn}")
-    public ResponseEntity<BookCopy> addCopy(@PathVariable String isbn) {
-        BookCopy copy = bookCopyService.addBookCopy(isbn);
-        return ResponseEntity.ok(copy);
+    public ResponseEntity<BookCopyResponseDto> addCopy(@PathVariable String isbn) {
+        BookCopyResponseDto responseDto = bookCopyService.addBookCopy(isbn);
+        return ResponseEntity.ok(responseDto);
     }
 
     // Borrow a book copy by copyId and borrowerId
@@ -46,15 +47,15 @@ public class BookCopyController {
 
     // Get all available copies for a given ISBN
     @GetMapping("/available/{isbn}")
-    public ResponseEntity<List<BookCopy>> getAvailableCopies(@PathVariable String isbn) {
-        List<BookCopy> copies = bookCopyService.getAvailableCopies(isbn);
+    public ResponseEntity<List<BookCopyResponseDto>> getAvailableCopies(@PathVariable String isbn) {
+        List<BookCopyResponseDto> copies = bookCopyService.getAvailableCopies(isbn);
         return ResponseEntity.ok(copies);
     }
 
     // Get all copies of a book by ISBN (borrowed or not)
     @GetMapping("/all/{isbn}")
-    public ResponseEntity<List<BookCopy>> getAllCopies(@PathVariable String isbn) {
-        List<BookCopy> copies = bookCopyService.getAvailableCopies(isbn);
+    public ResponseEntity<List<BookCopyResponseDto>> getAllCopies(@PathVariable String isbn) {
+        List<BookCopyResponseDto> copies = bookCopyService.getAvailableCopies(isbn);
         return ResponseEntity.ok(copies);
     }
 

@@ -1,5 +1,6 @@
 package com.example.library.controller;
 
+import com.example.library.dto.BookCopyResponseDto;
 import com.example.library.dto.BookDto;
 import com.example.library.model.Book;
 import com.example.library.model.BookCopy;
@@ -43,8 +44,8 @@ public class BookController {
 
     // Add a new copy of a book (physical copy)
     @PostMapping("/{isbn}/copies")
-    public ResponseEntity<BookCopy> addBookCopy(@PathVariable String isbn) {
-        BookCopy copy = bookCopyService.addBookCopy(isbn);
+    public ResponseEntity<BookCopyResponseDto> addBookCopy(@PathVariable String isbn) {
+        BookCopyResponseDto copy = bookCopyService.addBookCopy(isbn);
         return ResponseEntity.ok(copy);
     }
 
@@ -72,8 +73,8 @@ public class BookController {
 
     // Get all available (not borrowed) copies for a book by ISBN
     @GetMapping("/{isbn}/copies/available")
-    public ResponseEntity<List<BookCopy>> getAvailableCopies(@PathVariable String isbn) {
-        List<BookCopy> copies = bookCopyService.getAvailableCopies(isbn);
-        return ResponseEntity.ok(copies);
+    public ResponseEntity<List<BookCopyResponseDto>> getAvailableCopies(@PathVariable String isbn) {
+        List<BookCopyResponseDto> copiesResponseDto = bookCopyService.getAvailableCopies(isbn);
+        return ResponseEntity.ok(copiesResponseDto);
     }
 }

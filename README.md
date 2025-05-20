@@ -16,7 +16,7 @@ http://localhost:8080/api
 
 ### 1. **Add a New Book**
 
-* **POST** `/books/add`
+* **POST** `/books`
 * **Request Body:**
 
 ```json
@@ -31,7 +31,6 @@ http://localhost:8080/api
 
 ```json
 {
-  "id": 1,
   "isbn": "9781234567890",
   "title": "Effective Java",
   "author": "Joshua Bloch"
@@ -48,7 +47,6 @@ http://localhost:8080/api
 ```json
 [
   {
-    "id": 1,
     "isbn": "9781234567890",
     "title": "Effective Java",
     "author": "Joshua Bloch"

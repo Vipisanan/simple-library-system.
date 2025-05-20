@@ -1,6 +1,8 @@
 package com.example.library.serviceImpl;
 
 
+import com.example.library.dto.BookCopyResponseDto;
+import com.example.library.mapper.BookCopyMapper;
 import com.example.library.model.Book;
 import com.example.library.model.BookCopy;
 import com.example.library.model.Borrower;
@@ -25,14 +27,19 @@ public class BookCopyServiceImpl implements BookCopyService {
     @Autowired
     private BorrowerRepository borrowerRepository;
 
+    @Autowired
+    private BookCopyMapper bookCopyMapper;
+
     @Override
-    public BookCopy addBookCopy(String isbn) {
+    public BookCopyResponseDto addBookCopy(String isbn) {
         Book book = bookRepository.findByIsbn(isbn).orElseThrow(() -> new RuntimeException("Book not found for ISBN: " + isbn));
 
         BookCopy copy = new BookCopy();
         copy.setBook(book);
         copy.setBorrowed(false);
-        return bookCopyRepository.save(copy);
+        BookCopy bookCopy = bookCopyRepository.save(copy);
+
+        return bookCopyMapper.convertToResponseDto(bookCopy);
     }
 
     @Override
@@ -64,7 +71,8 @@ public class BookCopyServiceImpl implements BookCopyService {
     }
 
     @Override
-    public List<BookCopy> getAvailableCopies(String isbn) {
-        return bookCopyRepository.findByBookIsbnAndIsBorrowedFalse(isbn);
+    public List<BookCopyResponseDto> getAvailableCopies(String isbn) {
+        List<BookCopy> bookCopy = bookCopyRepository.findByBookIsbnAndIsBorrowedFalse(isbn);
+        return bookCopyMapper.convertToResponseDtoList(bookCopy);
     }
 }
